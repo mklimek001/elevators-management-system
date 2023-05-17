@@ -159,6 +159,21 @@ public class Elevator extends Thread{
         working = false;
     }
 
+    public int getDestinationFloor(){
+        int tempDestFloor;
+        readLock.lock();
+        try {
+            tempDestFloor = destinationFloor;
+        }finally {
+            readLock.unlock();
+        }
+        return tempDestFloor;
+    }
+
+    public ElevatorState getElevatorState(){
+        return new ElevatorState(id, currentFloor, destinationFloor);
+    }
+
     @Override
     public void run() {
         while(working){

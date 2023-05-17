@@ -4,14 +4,17 @@ package com.example.elevator.model;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 @Component
 public class Building extends Thread{
-    ArrayList<Elevator> elevators;
+    List<Elevator> elevators;
     int floorsNumber;
 
     public Building() {
-        this.elevators = new ArrayList<>();
+        this.elevators = Collections.synchronizedList(new ArrayList<>());
         this.floorsNumber = 0;
     }
 
@@ -24,14 +27,18 @@ public class Building extends Thread{
     }
 
 
-    public void callElevator(int floor){
+    public void requestElevatorToFloor(int elevator, int floor){
+        elevators.get(elevator).requestNewFloor(floor);
+    }
+
+    public void callElevator(int floor, int direction){
         if(floor >= 0 && floor < floorsNumber){
             if(!wasRequestedToFloor(floor)) {
                 int elevatorToRequestIdx = nearestFreeElevator(floor);
                 if (elevatorToRequestIdx >= 0) {
                     elevators.get(elevatorToRequestIdx).requestNewFloor(floor);
                 } else {
-                    elevatorToRequestIdx = elevatorToComeFirst(floor);
+                    elevatorToRequestIdx = elevatorToComeFirst(floor, direction);
                     elevators.get(elevatorToRequestIdx).requestNewFloor(floor);
                 }
             }
@@ -60,17 +67,33 @@ public class Building extends Thread{
         return false;
     }
 
-    private int elevatorToComeFirst(int floor){
+    private int elevatorToComeFirst(int floor, int direction){
         int elevatorId = -1;
         int elevatorNeededTime = floorsNumber * 20;
+        int elevatorIdOptimal = -1;
+        int elevatorNeededTimeOptimal = floorsNumber * 20;
+        int currNeededTime;
 
         for(Elevator elevator:elevators){
-            if(elevator.timeToReachFloor(floor) < elevatorNeededTime){
-                elevatorNeededTime = elevator.timeToReachFloor(floor);
+            currNeededTime = elevator.timeToReachFloor(floor);
+            if(currNeededTime < elevatorNeededTime){
+                elevatorNeededTime = currNeededTime;
                 elevatorId = elevator.getElevatorId();
             }
 
+            if(((direction < 0 && elevator.getCurrentFloor() > floor && elevator.getDestinationFloor() < floor)
+                    || (direction > 0 && elevator.getCurrentFloor() < floor && elevator.getDestinationFloor() > floor))
+                    && currNeededTime < elevatorNeededTimeOptimal){
+
+                elevatorNeededTimeOptimal = currNeededTime;
+                elevatorIdOptimal = elevator.getElevatorId();
+            }
         }
+
+        if(elevatorIdOptimal >= 0){
+            return elevatorIdOptimal;
+        }
+
         return elevatorId;
     }
 
@@ -78,6 +101,14 @@ public class Building extends Thread{
         for(Elevator elevator:elevators){
             elevator.stopWorking();
         }
+    }
+
+    public List<ElevatorState> getElevatorStates(){
+        List<ElevatorState> states = new LinkedList<>();
+        for(Elevator elevator:elevators){
+            states.add(elevator.getElevatorState());
+        }
+        return states;
     }
 
 
