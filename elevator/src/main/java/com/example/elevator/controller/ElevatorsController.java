@@ -11,7 +11,7 @@ import java.util.List;
 @RestController
 public class ElevatorsController {
 
-    private final Building building;
+    private Building building;
 
     public ElevatorsController(Building building) {
         this.building = building;
@@ -19,6 +19,7 @@ public class ElevatorsController {
 
     @GetMapping("/start-simulation")
     public String startSimulation(@RequestParam int elevators, @RequestParam int floors) {
+        building = new Building();
         building.setParameters(elevators, floors);
         building.start();
         return "Simulation started";

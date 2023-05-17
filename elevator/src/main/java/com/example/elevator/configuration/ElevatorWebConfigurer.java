@@ -12,7 +12,7 @@ public class ElevatorWebConfigurer implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins("http://localhost:3001", "http://localhost:3000")
-                .allowedMethods("GET", "POST")
+                .allowedMethods("GET", "PUT")
                 .allowedHeaders("*")
                 .allowCredentials(false)
                 .maxAge(3600);
