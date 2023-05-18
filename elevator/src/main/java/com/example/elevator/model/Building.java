@@ -1,6 +1,6 @@
 package com.example.elevator.model;
 
-
+import com.example.elevator.excptions.WrongFloorException;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -21,28 +21,26 @@ public class Building extends Thread{
 
     public void setParameters(int elevatorsNum, int floorsNum){
         for(int i = 0; i < elevatorsNum; i++){
-            elevators.add(new Elevator(i));
+            elevators.add(new Elevator(i, floorsNum));
         }
         this.floorsNumber = floorsNum;
     }
-
 
     public void requestElevatorToFloor(int elevator, int floor){
         elevators.get(elevator).requestNewFloor(floor);
     }
 
-    public void callElevator(int floor, int direction){
+    public void callElevator(int floor, int direction) throws WrongFloorException {
         if(floor >= 0 && floor < floorsNumber){
-            if(!wasRequestedToFloor(floor)) {
+            if (canBeFreeRequested(floor, direction)) {
                 int elevatorToRequestIdx = nearestFreeElevator(floor);
-                if (elevatorToRequestIdx >= 0) {
-                    elevators.get(elevatorToRequestIdx).requestNewFloor(floor);
-                } else {
-                    elevatorToRequestIdx = elevatorToComeFirst(floor, direction);
-                    elevators.get(elevatorToRequestIdx).requestNewFloor(floor);
-                }
+                elevators.get(elevatorToRequestIdx).requestFloorWithDirection(floor, direction);
+            }else if(!wasRequestedToFloor(floor, direction)) {
+                int elevatorToRequestIdx = elevatorToComeFirst(floor, direction);
+                elevators.get(elevatorToRequestIdx).requestFloorWithDirection(floor, direction);
             }
-
+        }else{
+            throw new WrongFloorException("Floor must be between 0 and " + (floorsNumber-1));
         }
     }
 
@@ -58,13 +56,31 @@ public class Building extends Thread{
         return elevatorId;
     }
 
-    private boolean wasRequestedToFloor(int floor){
+    private boolean wasRequestedToFloor(int floor, int direction){
         for(Elevator elevator:elevators){
-            if (elevator.stopsAtFloor(floor)){
+            if (elevator.stopsAtFloorWithDirection(floor, direction)){
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean canBeFreeRequested(int floor, int direction){
+        int stopsAtFloorCounter = 0;
+        int freeCounter = 0;
+
+        for(Elevator elevator:elevators){
+            if (elevator.stopsAtFloorWithDirection(floor, direction)){
+                stopsAtFloorCounter++;
+            }
+            if (!elevator.isMoving()){
+                freeCounter++;
+            }
+        }
+
+        return (freeCounter > elevators.size()/2 && stopsAtFloorCounter < 2)
+                || (freeCounter > 0 && stopsAtFloorCounter == 0);
+
     }
 
     private int elevatorToComeFirst(int floor, int direction){

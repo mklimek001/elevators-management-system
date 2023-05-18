@@ -1,5 +1,6 @@
 package com.example.elevator.controller;
 
+import com.example.elevator.excptions.WrongFloorException;
 import com.example.elevator.model.Building;
 
 
@@ -18,7 +19,8 @@ public class ElevatorsController {
     }
 
     @GetMapping("/start-simulation")
-    public String startSimulation(@RequestParam int elevators, @RequestParam int floors) {
+    public String startSimulation(@RequestParam int elevators, @RequestParam int floors) throws InterruptedException {
+        stopSimulation();
         building = new Building();
         building.setParameters(elevators, floors);
         building.start();
@@ -27,8 +29,10 @@ public class ElevatorsController {
 
     @GetMapping("/stop-simulation")
     public String stopSimulation() throws InterruptedException {
-        building.stopSimulation();
-        building.join();
+        if (building.getState() == Thread.State.RUNNABLE){
+            building.stopSimulation();
+            building.join();
+        }
         return "Simulation stopped";
     }
 
@@ -38,8 +42,13 @@ public class ElevatorsController {
     }
 
     @PutMapping("/pickup")
-    public void requestLiftForFloor(@RequestParam int floor, @RequestParam int direction){
-        building.callElevator(floor, direction);
+    public String requestLiftForFloor(@RequestParam int floor, @RequestParam int direction){
+        try {
+            building.callElevator(floor, direction);
+        } catch (WrongFloorException e) {
+            return e.getMessage();
+        }
+        return "Elevator requested";
     }
 
     @PutMapping("/update")

@@ -1,8 +1,6 @@
 package com.example.elevator.model;
 
-import java.util.Collections;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -17,11 +15,12 @@ public class Elevator extends Thread{
     private int movement;
     private boolean working;
     private final SortedSet<Integer> requestedFloors;
+    private final List<Integer> floorsDirections;
     private final ReadWriteLock stateChangeLock = new ReentrantReadWriteLock();
     private final Lock readLock = stateChangeLock.readLock();
     private final Lock writeLock = stateChangeLock.writeLock();
 
-    public Elevator(int id) {
+    public Elevator(int id, int floors) {
         this.id = id;
         currentFloor = 0;
         destinationFloor = 0;
@@ -29,6 +28,7 @@ public class Elevator extends Thread{
         working = true;
         SortedSet<Integer> treeSet = new TreeSet<>();
         requestedFloors = Collections.synchronizedSortedSet(treeSet);
+        floorsDirections = Collections.synchronizedList(new ArrayList<>(Collections.nCopies(floors, 0)));
     }
 
     public int timeToReachFloor(int floor){
@@ -83,7 +83,21 @@ public class Elevator extends Thread{
         }
     }
 
+    public void requestFloorWithDirection(int floor, int direction){
+        requestNewFloor(floor);
+        floorsDirections.set(floor, direction);
+    }
+    
+    public boolean stopsAtFloorWithDirection(int floor, int direction){
+        if (stopsAtFloor(floor)) {
+            return (floorsDirections.get(floor) * direction > 0)
+                    || (floorsDirections.get(floor) == 0 && (floor - currentFloor) * direction > 0);
+        }
+        return false;
+    }
+
     private void floorReached(int floor){
+        floorsDirections.set(floor, 0);
         writeLock.lock();
         try {
             if (requestedFloors.remove(floor) && destinationFloor == floor) {
