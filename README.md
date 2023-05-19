@@ -28,9 +28,9 @@ In the simulation, elevators move up and down between the maximum and minimum re
 
 The floors, at which the elevator stops can be dynamically changed during the program's execution (for example, by calling the elevator from a panel on a floor or  inside the elevator).
 
-When an elevator is called from a floor panel, the algorithm checks if it's possible to send an empty elevator to this floor. It is allowed when
-1. There is at least one available elevator, and no other elevator will stop on that floor while moving in this direction.
-2. More than half of the elevators are available, and at most one other elevator will stop on that floor while moving in this direction.
+When an elevator is called from a floor panel, the algorithm checks if it's possible to send an empty elevator to this floor. It is allowed when:
+1. there is at least one available elevator, and no other elevator will stop on that floor while moving in this direction.
+2. more than half of the elevators are available, and at most one other elevator will stop on that floor while moving in this direction.
 
 In such cases, the nearest available elevator is selected to go to that floor.
 
@@ -49,7 +49,7 @@ Aplikacja jest budowana z użyciem Gradle.
 
 Próby przygotowane kontenery Docker nie działają poprawnie, więc najwygodniejszym sposobem na uruchomienie aplikacji pozostaje skorzystanie z IDE (np Intellij IDEA) z zainstalowanym JDK Java 17. 
 
-Do aplikacji zostały również przygotowane testy.
+Do aplikacji zostały również przygotowane testy jednostkowe (JUnit).
 
 Do celów prezentacyjnych przygotowana została również prosta aplikacja webowa , Pozwala ona na wchodzenie w interakcję z windami w budynku. Można ją uruchomić następującymi komendami:
 ```
