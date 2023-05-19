@@ -1,0 +1,20 @@
+version: '3.7'
+
+services:
+  server:
+    build:
+      ./elevator
+    image: elevator-backend
+    ports:
+      - "8080:8080"
+    restart: always
+
+  client:
+    build:
+      ./elevator-frontend
+    image: elevator-frontend
+    ports:
+      - "3000:3000"
+    restart: always
+    depends_on:
+      - server
