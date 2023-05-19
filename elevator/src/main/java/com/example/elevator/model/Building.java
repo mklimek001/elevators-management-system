@@ -26,8 +26,12 @@ public class Building extends Thread{
         this.floorsNumber = floorsNum;
     }
 
-    public void requestElevatorToFloor(int elevator, int floor){
-        elevators.get(elevator).requestNewFloor(floor);
+    public void requestElevatorToFloor(int elevator, int floor) throws WrongFloorException {
+        if(floor >= 0 && floor < floorsNumber){
+            elevators.get(elevator).requestNewFloor(floor);
+        }else{
+            throw new WrongFloorException("Floor must be between 0 and " + (floorsNumber-1));
+        }
     }
 
     public void callElevator(int floor, int direction) throws WrongFloorException {

@@ -31,27 +31,38 @@ public class Elevator extends Thread{
         floorsDirections = Collections.synchronizedList(new ArrayList<>(Collections.nCopies(floors, 0)));
     }
 
+    public Elevator(int id, int floors, int currFloor) {
+        this.id = id;
+        currentFloor = currFloor;
+        destinationFloor = currFloor;
+        movement = 0;
+        working = true;
+        SortedSet<Integer> treeSet = new TreeSet<>();
+        requestedFloors = Collections.synchronizedSortedSet(treeSet);
+        floorsDirections = Collections.synchronizedList(new ArrayList<>(Collections.nCopies(floors, 0)));
+    }
+
     public int timeToReachFloor(int floor){
         int distance = 0;
         readLock.lock();
         try {
             if(destinationFloor >= currentFloor && floor > currentFloor){
                 distance += Math.abs(currentFloor - floor) * movingTime;
-                for(int i = currentFloor; i<destinationFloor; i++){
+                for(int i = currentFloor; i<=destinationFloor; i++){
                     if(requestedFloors.contains(i)){
                         distance += standingTime;
                     }
                 }
             } else if (destinationFloor <= currentFloor && floor < currentFloor) {
                 distance += Math.abs(currentFloor - floor) * movingTime;
-                for(int i = currentFloor; i>destinationFloor; i--){
+                for(int i = currentFloor; i >= destinationFloor; i--){
                     if(requestedFloors.contains(i)){
                         distance += standingTime;
                     }
                 }
             } else if (destinationFloor < currentFloor && floor > currentFloor){
                 distance += Math.abs((destinationFloor - currentFloor) + (destinationFloor - floor)) * movingTime;
-                for(int i = destinationFloor; i<floor; i++){
+                for(int i = destinationFloor; i < floor; i++){
                     if(requestedFloors.contains(i)){
                         distance += standingTime;
                     }
@@ -167,6 +178,14 @@ public class Elevator extends Thread{
             readLock.unlock();
         }
         return tempCurrFloor;
+    }
+
+    public int getMovingTime(){
+        return movingTime;
+    }
+
+    public int getStandingTime(){
+        return standingTime;
     }
 
     public void stopWorking(){

@@ -52,8 +52,13 @@ public class ElevatorsController {
     }
 
     @PutMapping("/update")
-    public void updateElevatorState(@RequestParam int elevator, @RequestParam int floor){
-        building.requestElevatorToFloor(elevator, floor);
+    public String updateElevatorState(@RequestParam int elevator, @RequestParam int floor) {
+        try {
+            building.requestElevatorToFloor(elevator, floor);
+        } catch (WrongFloorException e) {
+            return e.getMessage();
+        }
+        return "Elevator requested";
     }
 
 }
